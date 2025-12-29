@@ -18,7 +18,7 @@ __global__ void matmul(float* M, float* N, float* P, int mat_width) {
       else
          M_shared[threadIdx.y][threadIdx.x] = 0.0f;
 
-      if (col <  mat_width && phase * TILE_WIDTH + threadIdx.y < mat_width)
+      if (col < mat_width && phase * TILE_WIDTH + threadIdx.y < mat_width)
          N_shared[threadIdx.y][threadIdx.x] = N[(phase*TILE_WIDTH+threadIdx.y) * mat_width + col]; // N[row][phase][col]
       else
          N_shared[threadIdx.y][threadIdx.x] = 0.0f;
@@ -31,11 +31,13 @@ __global__ void matmul(float* M, float* N, float* P, int mat_width) {
 
       __syncthreads();  // ensures reads are finished before overwriting shared mem in next phase
    }
-   P[row*mat_width+col] = accum;
+
+   if (row < mat_width && col < mat_width)
+      P[row*mat_width+col] = accum;
 }
 
 int main() {
-   const int dim = 1024;
+   const int dim = 1024*64;
    float* mat_h = new float[dim * dim];
    float* vec_h = new float[dim];
    float* out_h = new float[dim];
