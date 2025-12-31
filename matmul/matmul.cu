@@ -1,5 +1,19 @@
 #include <cuda_runtime.h>
 
+// regular naive
+__global__ void matrix_multiplication_kernel(const float* A, const float* B, float* C, int M, int N, int K) {
+   int col = blockIdx.x * blockDim.x + threadIdx.x;
+   int row = blockIdx.y * blockDim.y + threadIdx.y;
+
+   if (row<M && col<K) {
+      float tmp = 0.0;
+      for (int i = 0; i < N; i++) {
+         tmp += A[row*N+i] * B[i*K+col];
+      }
+      C[row*K+col] = tmp;
+   }
+}
+
 // 1a
 // A*B = C. A has shape mxn, B has shape nxk. launch only m threads
 // matmul_1a<<<(m+15)/16, 16>>>(A_d, B_d, C_d, m, n, k);

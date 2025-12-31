@@ -2,6 +2,9 @@
 #include <time.h>
 #include <iostream>
 
+// two separate boundary checks are needed. One for making sure reading from the input is in bounds
+// and one for making sure the thread is calculating valid output element. Notice that these checks
+// are not mutually exclusive or redundant.
 #define TILE_WIDTH 16
 __global__ void matmul(float* M, float* N, float* P, int mat_width) {
    __shared__ float M_shared[TILE_WIDTH][TILE_WIDTH];
@@ -13,11 +16,14 @@ __global__ void matmul(float* M, float* N, float* P, int mat_width) {
    float accum = 0.f;
    for (int phase = 0; phase < (mat_width + TILE_WIDTH - 1)/TILE_WIDTH; phase++) {
       // first load M and N into the shared mem. lasts only for this phase
+
+      // this is to check if thread is inside input matrix bounds
       if (row < mat_width && phase * TILE_WIDTH + threadIdx.x < mat_width)
          M_shared[threadIdx.y][threadIdx.x] = M[row*mat_width + phase*TILE_WIDTH+threadIdx.x];     // M[row][phase][col]
       else
          M_shared[threadIdx.y][threadIdx.x] = 0.0f;
 
+      // same thing as above
       if (col < mat_width && phase * TILE_WIDTH + threadIdx.y < mat_width)
          N_shared[threadIdx.y][threadIdx.x] = N[(phase*TILE_WIDTH+threadIdx.y) * mat_width + col]; // N[row][phase][col]
       else
@@ -32,12 +38,13 @@ __global__ void matmul(float* M, float* N, float* P, int mat_width) {
       __syncthreads();  // ensures reads are finished before overwriting shared mem in next phase
    }
 
+   // this is to check if thread is inside output matrix bounds
    if (row < mat_width && col < mat_width)
       P[row*mat_width+col] = accum;
 }
 
 int main() {
-   const int dim = 1024*64;
+   const int dim = 1024;
    float* mat_h = new float[dim * dim];
    float* vec_h = new float[dim];
    float* out_h = new float[dim];
