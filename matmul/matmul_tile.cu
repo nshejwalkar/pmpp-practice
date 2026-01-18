@@ -71,12 +71,7 @@ int main() {
    dim3 blockSize(TILE_WIDTH, TILE_WIDTH);
    dim3 gridSize((dim + TILE_WIDTH - 1) / TILE_WIDTH, (dim + TILE_WIDTH - 1) / TILE_WIDTH);
 
-   // start timing
-   clock_t start = clock();
    matmul<<<gridSize, blockSize>>>(mat_d, mat_d, mat_d, dim);
-   clock_t end = clock();
-   double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
-   std::cout << "Time taken: " << time_taken << " seconds" << std::endl;
 
    cudaMemcpy(out_h, out_d, dim * sizeof(float), cudaMemcpyDeviceToHost);
 
