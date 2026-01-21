@@ -1,6 +1,6 @@
 // A = MxK, B = KxN, C = MxN
 template <const unsigned int block_size>
-__global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A, const float *B, float beta, float *C) {
+__global__ void sgemm_coalescing(int M, int N, int K, float alpha, const float *A, const float *B, float beta, float *C) {
     const unsigned int x = blockIdx.x * block_size + (threadIdx.x / block_size);
     const unsigned int y = blockIdx.y * block_size + (threadIdx.x % block_size);
 
@@ -12,6 +12,14 @@ __global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A, co
         C[x * N + y] = alpha * tmp + beta * C[x * N + y];
     }
 }
+/*
+dim3 gridDim(CEIL_DIV(M, 32), CEIL_DIV(N, 32));
+dim3 blockDim(32*32);
+const unsigned int block_size = 32;
+sgemm_naive<block_size><<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+*/
+
+// nothing changes in the SASS from 1, because coalescing is done at runtime. compiler cant guarantee accesses are aligned 
 
 // the blog more or less forces the mapping x = rows and y = cols, so changing the x/y math is the fix here.
 // if we weren't bound to this, just doing it the regular 2d way would work just fine.

@@ -11,6 +11,13 @@ __global__ void sgemm_naive(int M, int N, int K, float alpha, const float* A, co
         C[x * N + y] = alpha * tmp + beta * C[x * N + y];
     }
 }
+
+/*
+dim3 gridDim(CEIL_DIV(M, 32), CEIL_DIV(N, 32), 1);
+dim3 blockDim(32, 32, 1);
+sgemm_naive<<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+*/
+
 // this is even worse than the "regular naive gemm" because array accesses vary along rows, not columns, so no gmem coalescing
 
 // linearization indexing:
