@@ -1,6 +1,6 @@
 // A = MxK, B = KxN, C = MxN
 template <const int BM, const int BN, const int BK, const int TM, const int TN>
-__global__ void sgemm_2d_blocktiling(int M, int N, int K, float alpha, const float *A, const float *B, float beta, float *C) {
+__global__ void sgemm_vectorized(int M, int N, int K, float alpha, const float *A, const float *B, float beta, float *C) {
     const unsigned int block_row = blockIdx.x;
     const unsigned int block_col = blockIdx.y;
 
